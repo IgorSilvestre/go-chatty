@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	apiv1 "go-chatty/cmd/api/router/v1"
 	"go-chatty/internal/infrastructure/database"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,8 @@ func main() {
 			"status": "OK",
 		})
 	})
+
+	apiv1.RegisterRoutes(r, pool)
 
 	// Start HTTP server (blocks until shutdown)
 	_ = r.Run()

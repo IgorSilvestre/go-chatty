@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/internal/pkg/chat/persistence/repository/adapter/PgChatRepository.go" value="216b1025-a990-47f6-a287-0af04a1d81af" />
+  </component>
+</project>
