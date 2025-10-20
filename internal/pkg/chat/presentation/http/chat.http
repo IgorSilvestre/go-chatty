@@ -1,0 +1,18 @@
+### Create a chat
+POST {{host}}/api/v1/chat
+Content-Type: application/json
+
+{
+  "participant_ids": ["{{userId1}}", "{{userId2}}"]
+}
+
+### Send a message to a chat
+POST {{host}}/api/v1/chat/{{chatId}}
+Content-Type: application/json
+
+{
+  "sender_id": "{{userId1}}",
+  "body": "Hello, this is a test message",
+  "msg_type": 0,
+  "dedupe_key": "optional-dedupe-key"
+}

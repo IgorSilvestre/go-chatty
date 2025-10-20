@@ -24,7 +24,7 @@ func (r *PgChatRepository) CreateConversation(ctx context.Context, c chat.Conver
 	}
 	var id string
 	err := r.pool.QueryRow(ctx,
-		"INSERT INTO conversations (created_at, tenant_id) VALUES ($1, $2::uuid) RETURNING id::text",
+		"INSERT INTO chat.conversation (created_at, tenant_id) VALUES ($1, NULLIF($2, '')::uuid) RETURNING id::text",
 		c.CreatedAt, c.TenantID,
 	).Scan(&id)
 	return id, err
@@ -35,7 +35,7 @@ func (r *PgChatRepository) AddParticipant(ctx context.Context, p chat.Participan
 		return errors.New("PgChatRepository: nil pool")
 	}
 	_, err := r.pool.Exec(ctx, `
-		INSERT INTO participants (conversation_id, user_id, role, last_read_msg, muted_until)
+		INSERT INTO chat.participant (conversation_id, user_id, role, last_read_msg, muted_until)
 		VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5)
 		ON CONFLICT (conversation_id, user_id)
 		DO UPDATE SET role = EXCLUDED.role,
@@ -51,7 +51,7 @@ func (r *PgChatRepository) SaveMessage(ctx context.Context, m chat.Message) (str
 	}
 	var id string
 	err := r.pool.QueryRow(ctx, `
-		INSERT INTO messages (
+		INSERT INTO chat.message (
 			conversation_id, sender_id, created_at, body, msg_type, attachment_url, attachment_meta, dedupe_key
 		) VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, COALESCE($7::json, NULL), $8)
 		RETURNING id::text
@@ -71,7 +71,7 @@ func (r *PgChatRepository) GetMessagesByConversation(ctx context.Context, conver
 	}
 	rows, err := r.pool.Query(ctx, `
 		SELECT id::text, conversation_id::text, sender_id::text, created_at, body, msg_type, attachment_url, attachment_meta, dedupe_key
-		FROM messages
+		FROM chat.message
 		WHERE conversation_id = $1::uuid
 		ORDER BY created_at ASC
 		LIMIT $2 OFFSET $3
@@ -110,7 +110,7 @@ func (r *PgChatRepository) UpdateParticipantReadState(ctx context.Context, conve
 		return errors.New("PgChatRepository: nil pool")
 	}
 	ct, err := r.pool.Exec(ctx, `
-		UPDATE participants
+		UPDATE chat.participant
 		SET last_read_msg = $3::uuid
 		WHERE conversation_id = $1::uuid AND user_id = $2::uuid
 	`, conversationID, userID, lastReadMsg)
@@ -128,7 +128,7 @@ func (r *PgChatRepository) SetMuteUntil(ctx context.Context, conversationID stri
 		return errors.New("PgChatRepository: nil pool")
 	}
 	ct, err := r.pool.Exec(ctx, `
-		UPDATE participants
+		UPDATE chat.participant
 		SET muted_until = $3
 		WHERE conversation_id = $1::uuid AND user_id = $2::uuid
 	`, conversationID, userID, mutedUntil)

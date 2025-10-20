@@ -23,7 +23,6 @@ func NewCreateChatController(pool *pgxpool.Pool) *CreateChatController {
 }
 
 type createChatRequest struct {
-	TenantID       string   `json:"tenant_id" binding:"required"`
 	ParticipantIDs []string `json:"participant_ids"`
 }
 
@@ -39,7 +38,7 @@ func (h *CreateChatController) Handle() gin.HandlerFunc {
 			return
 		}
 
-		in := usecase.CreateChatInput{TenantID: req.TenantID, ParticipantIDs: req.ParticipantIDs}
+		in := usecase.CreateChatInput{ParticipantIDs: req.ParticipantIDs}
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Second)
 		defer cancel()
 		conv, err := h.UC.Execute(ctx, in)
@@ -55,7 +54,6 @@ func (h *CreateChatController) Handle() gin.HandlerFunc {
 		c.JSON(http.StatusCreated, gin.H{
 			"id":         conv.ID,
 			"created_at": conv.CreatedAt,
-			"tenant_id":  conv.TenantID,
 		})
 	}
 }

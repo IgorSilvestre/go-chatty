@@ -30,9 +30,6 @@ func NewCreateChatUseCase(repo repository.ChatRepository) *CreateChatUseCase {
 
 // Execute persists a conversation and registers participants
 func (uc *CreateChatUseCase) Execute(ctx context.Context, in CreateChatInput) (*chat.Conversation, error) {
-	if in.TenantID == "" {
-		return nil, fmt.Errorf("tenant_id is required")
-	}
 	if len(in.ParticipantIDs) == 0 {
 		return nil, fmt.Errorf("participant_ids must include at least one user id")
 	}
