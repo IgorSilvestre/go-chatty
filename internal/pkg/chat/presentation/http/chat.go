@@ -11,5 +11,5 @@ import (
 // It constructs per-endpoint controllers and binds them directly to routes.
 func RegisterRoutes(g *gin.RouterGroup, pool *pgxpool.Pool) {
 	sendMsgCtl := controller.NewSendMessageController(pool)
-	g.POST("/conversations/:conversationId/messages", sendMsgCtl.Handle())
+	g.POST("/conversation/:conversationId", sendMsgCtl.Handle())
 }
