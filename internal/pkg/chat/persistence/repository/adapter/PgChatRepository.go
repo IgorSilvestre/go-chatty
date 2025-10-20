@@ -3,7 +3,7 @@ package adapter
 import (
 	"context"
 	"errors"
-	"go-chatty/internal/pkg/chat/domain"
+	chat "go-chatty/internal/pkg/chat/application/domain"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -23,8 +23,8 @@ func (r *PgChatRepository) CreateConversation(ctx context.Context, c chat.Conver
 		return errors.New("PgChatRepository: nil pool")
 	}
 	_, err := r.pool.Exec(ctx,
-		"INSERT INTO conversations (id, created_at, tenant_id) VALUES ($1, $2, $3)",
-		c.ID, c.CreatedAt, c.TenantID,
+		"INSERT INTO conversations (created_at, tenant_id) VALUES ($1, $2::uuid)",
+		c.CreatedAt, c.TenantID,
 	)
 	return err
 }
@@ -35,7 +35,7 @@ func (r *PgChatRepository) AddParticipant(ctx context.Context, p chat.Participan
 	}
 	_, err := r.pool.Exec(ctx, `
 		INSERT INTO participants (conversation_id, user_id, role, last_read_msg, muted_until)
-		VALUES ($1, $2, $3, $4, $5)
+		VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5)
 		ON CONFLICT (conversation_id, user_id)
 		DO UPDATE SET role = EXCLUDED.role,
 		              last_read_msg = EXCLUDED.last_read_msg,
@@ -44,16 +44,18 @@ func (r *PgChatRepository) AddParticipant(ctx context.Context, p chat.Participan
 	return err
 }
 
-func (r *PgChatRepository) SaveMessage(ctx context.Context, m chat.Message) error {
+func (r *PgChatRepository) SaveMessage(ctx context.Context, m chat.Message) (string, error) {
 	if r == nil || r.pool == nil {
-		return errors.New("PgChatRepository: nil pool")
+		return "", errors.New("PgChatRepository: nil pool")
 	}
-	_, err := r.pool.Exec(ctx, `
+	var id string
+	err := r.pool.QueryRow(ctx, `
 		INSERT INTO messages (
-			id, conversation_id, sender_id, created_at, body, msg_type, attachment_url, attachment_meta, dedupe_key
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8::json, NULL), $9)
-	`, m.ID, m.ConversationID, m.SenderID, m.CreatedAt, m.Body, m.MsgType, m.AttachmentURL, m.AttachmentMeta, m.DedupeKey)
-	return err
+			conversation_id, sender_id, created_at, body, msg_type, attachment_url, attachment_meta, dedupe_key
+		) VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, COALESCE($7::json, NULL), $8)
+		RETURNING id::text
+	`, m.ConversationID, m.SenderID, m.CreatedAt, m.Body, m.MsgType, m.AttachmentURL, m.AttachmentMeta, m.DedupeKey).Scan(&id)
+	return id, err
 }
 
 func (r *PgChatRepository) GetMessagesByConversation(ctx context.Context, conversationID string, limit int, offset int) ([]chat.Message, error) {
@@ -67,9 +69,9 @@ func (r *PgChatRepository) GetMessagesByConversation(ctx context.Context, conver
 		offset = 0
 	}
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, conversation_id, sender_id, created_at, body, msg_type, attachment_url, attachment_meta, dedupe_key
+		SELECT id::text, conversation_id::text, sender_id::text, created_at, body, msg_type, attachment_url, attachment_meta, dedupe_key
 		FROM messages
-		WHERE conversation_id = $1
+		WHERE conversation_id = $1::uuid
 		ORDER BY created_at ASC
 		LIMIT $2 OFFSET $3
 	`, conversationID, limit, offset)
@@ -108,8 +110,8 @@ func (r *PgChatRepository) UpdateParticipantReadState(ctx context.Context, conve
 	}
 	ct, err := r.pool.Exec(ctx, `
 		UPDATE participants
-		SET last_read_msg = $3
-		WHERE conversation_id = $1 AND user_id = $2
+		SET last_read_msg = $3::uuid
+		WHERE conversation_id = $1::uuid AND user_id = $2::uuid
 	`, conversationID, userID, lastReadMsg)
 	if err != nil {
 		return err
@@ -127,7 +129,7 @@ func (r *PgChatRepository) SetMuteUntil(ctx context.Context, conversationID stri
 	ct, err := r.pool.Exec(ctx, `
 		UPDATE participants
 		SET muted_until = $3
-		WHERE conversation_id = $1 AND user_id = $2
+		WHERE conversation_id = $1::uuid AND user_id = $2::uuid
 	`, conversationID, userID, mutedUntil)
 	if err != nil {
 		return err
