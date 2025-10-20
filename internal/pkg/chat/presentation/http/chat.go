@@ -13,10 +13,14 @@ import (
 func RegisterRoutes(g *gin.RouterGroup, pool *pgxpool.Pool, client qport.Client) {
 	createCtl := controller.NewCreateChatController(pool)
 	sendMsgCtl := controller.NewSendMessageController(pool, client)
+	getMsgCtl := controller.NewGetMessageController(pool)
 
 	// POST /api/v1/chat -> create a chat
 	g.POST("/chat", createCtl.Handle())
 
 	// POST /api/v1/chat/:chatId -> send a message into a chat
 	g.POST("/chat/:chatId", sendMsgCtl.Handle())
+
+	// GET /api/v1/chat/:chatId/messages -> fetch messages by chat id
+	g.GET("/chat/:chatId/messages", getMsgCtl.Handle())
 }
