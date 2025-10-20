@@ -1,3 +1,4 @@
 - Use Domain-Driven-Design and Hexagonal architecture
 - Each pkg is a domain
 - dont separate usecases in port/adapters
+- use always singular when naming, except for variables with multiple items
