@@ -73,7 +73,7 @@ func (r *PgChatRepository) GetMessagesByConversation(ctx context.Context, conver
 		SELECT id::text, conversation_id::text, sender_id::text, created_at, body, msg_type, attachment_url, attachment_meta, dedupe_key
 		FROM chat.message
 		WHERE conversation_id = $1::uuid
-		ORDER BY created_at ASC
+		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3
 	`, conversationID, limit, offset)
 	if err != nil {
