@@ -2,3 +2,4 @@
 - Each pkg is a domain
 - dont separate usecases in port/adapters
 - use always singular when naming, except for variables with multiple items
+- each controller and usecase have its own file
