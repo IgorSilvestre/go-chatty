@@ -108,3 +108,8 @@ srv.Register("email:send", func(ctx context.Context, t port.Task) error {
 // This call blocks until the context is canceled
 _ = srv.Run(ctx)
 ```
+
+- get the web UI binary:
+- https://github.com/hibiken/asynqmon
+
+` ./asynqmon --redis-url <REDIS_URL> --port 8080`
