@@ -18,6 +18,17 @@ services:
       timeout: 3s
       retries: 20
 
+  redis:
+    image: redis:7-alpine
+    container_name: go-chatty-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   api:
     build: .
     container_name: go-chatty-api
@@ -26,10 +37,14 @@ services:
       GIN_MODE: release
       # Database URL consumed by internal/infrastructure/database.NewPoolFromEnv
       DB_URL: postgresql://postgres:postgres@db:5432/chatty?sslmode=disable
+      # Redis URL consumed by internal/infrastructure/cache/adapter.NewFromEnv
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "8080:8080"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
 volumes:
