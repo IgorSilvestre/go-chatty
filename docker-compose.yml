@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: go-chatty-db
+    environment:
+      POSTGRES_DB: chatty
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d chatty"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    container_name: go-chatty-api
+    environment:
+      # Gin in release by default; override as needed
+      GIN_MODE: release
+      # Database URL consumed by internal/infrastructure/database.NewPoolFromEnv
+      DB_URL: postgresql://postgres:postgres@db:5432/chatty?sslmode=disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
