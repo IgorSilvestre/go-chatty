@@ -34,12 +34,12 @@ type sendMessageRequest struct {
 	DedupeKey      *string `json:"dedupe_key"`
 }
 
-// Handle returns a gin handler that handles sending a message to a conversation
+// Handle returns a gin handler that handles sending a message to a chat
 func (h *SendMessageController) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		conversationID := c.Param("conversationId")
-		if conversationID == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "conversationId is required"})
+		chatID := c.Param("chatId")
+		if chatID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "chatId is required"})
 			return
 		}
 
@@ -55,7 +55,7 @@ func (h *SendMessageController) Handle() gin.HandlerFunc {
 		}
 
 		in := usecase.SendMessageInput{
-			ConversationID: conversationID,
+			ConversationID: chatID,
 			SenderID:       req.SenderID,
 			Body:           req.Body,
 			MsgType:        msgType,
@@ -78,7 +78,7 @@ func (h *SendMessageController) Handle() gin.HandlerFunc {
 
 		c.JSON(http.StatusCreated, gin.H{
 			"id":              msg.ID,
-			"conversation_id": msg.ConversationID,
+			"chat_id":         msg.ConversationID,
 			"sender_id":       msg.SenderID,
 			"created_at":      msg.CreatedAt,
 			"body":            msg.Body,
