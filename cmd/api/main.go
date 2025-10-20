@@ -8,6 +8,7 @@ import (
 
 	apiv1 "go-chatty/cmd/api/router/v1"
 	"go-chatty/internal/infrastructure/database"
+	queue "go-chatty/internal/infrastructure/queue/adapter"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -38,6 +39,17 @@ func main() {
 	})
 
 	apiv1.RegisterRoutes(r, pool)
+
+	// Initialize Asynq server (worker) and launch in a goroutine
+	srv, err := queue.NewAsynqServer()
+	if err != nil {
+		log.Fatalf("failed to initialize asynq server: %v", err)
+	}
+	go func() {
+		if err := srv.Run(context.Background()); err != nil {
+			log.Fatalf("asynq server error: %v", err)
+		}
+	}()
 
 	// Start HTTP server (blocks until shutdown)
 	_ = r.Run()
