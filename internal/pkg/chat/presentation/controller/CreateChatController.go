@@ -12,9 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// CreateChatController handles the chat creation endpoint
-// One controller per endpoint
-
 type CreateChatController struct {
 	UC *usecase.CreateChatUseCase
 }
