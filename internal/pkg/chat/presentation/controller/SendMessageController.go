@@ -2,12 +2,12 @@ package controller
 
 import (
 	"context"
-	"errors"
-	chat "go-chatty/internal/pkg/chat/application/domain"
-	"go-chatty/internal/pkg/chat/application/usecase"
-	"go-chatty/internal/pkg/chat/persistence/repository/adapter"
+	"encoding/json"
+	"go-chatty/internal/pkg/chat/application/task"
 	"net/http"
 	"time"
+
+	queueport "go-chatty/internal/infrastructure/queue/port"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,13 +15,12 @@ import (
 
 // SendMessageController handles the send-message endpoint only (one controller per endpoint)
 type SendMessageController struct {
-	UC *usecase.SendMessageUseCase
+	Q    queueport.Client
+	pool *pgxpool.Pool // kept for future use / parity; not used here
 }
 
-func NewSendMessageController(pool *pgxpool.Pool) *SendMessageController {
-	repo := adapter.NewPgChatRepository(pool)
-	uc := usecase.NewSendMessageUseCase(repo)
-	return &SendMessageController{UC: uc}
+func NewSendMessageController(pool *pgxpool.Pool, client queueport.Client) *SendMessageController {
+	return &SendMessageController{Q: client, pool: pool}
 }
 
 // sendMessageRequest is the DTO for the HTTP request body
@@ -34,7 +33,7 @@ type sendMessageRequest struct {
 	DedupeKey      *string `json:"dedupe_key"`
 }
 
-// Handle returns a gin handler that handles sending a message to a chat
+// Handle returns a gin handler that enqueues a background task to send a message
 func (h *SendMessageController) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		chatID := c.Param("chatId")
@@ -49,12 +48,12 @@ func (h *SendMessageController) Handle() gin.HandlerFunc {
 			return
 		}
 
-		msgType := chat.MessageTypeText
+		msgType := int16(0) // default to text, mapped in worker
 		if req.MsgType != nil {
-			msgType = chat.MessageType(*req.MsgType)
+			msgType = *req.MsgType
 		}
 
-		in := usecase.SendMessageInput{
+		payload := task.SendMessageTaskPayload{
 			ConversationID: chatID,
 			SenderID:       req.SenderID,
 			Body:           req.Body,
@@ -63,29 +62,28 @@ func (h *SendMessageController) Handle() gin.HandlerFunc {
 			AttachmentMeta: req.AttachmentMeta,
 			DedupeKey:      req.DedupeKey,
 		}
-
-		ctx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Second)
-		defer cancel()
-		msg, err := h.UC.Execute(ctx, in)
+		b, err := json.Marshal(payload)
 		if err != nil {
-			status := http.StatusBadRequest
-			if errors.Is(err, usecase.ErrPersistence) {
-				status = http.StatusInternalServerError
-			}
-			c.JSON(status, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to encode task payload"})
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{
-			"id":              msg.ID,
-			"chat_id":         msg.ConversationID,
-			"sender_id":       msg.SenderID,
-			"created_at":      msg.CreatedAt,
-			"body":            msg.Body,
-			"msg_type":        msg.MsgType,
-			"attachment_url":  msg.AttachmentURL,
-			"attachment_meta": msg.AttachmentMeta,
-			"dedupe_key":      msg.DedupeKey,
+		ctx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Second)
+		defer cancel()
+
+		// Enqueue task; best-effort options
+		opts := queueport.EnqueueOption{Queue: "chat", MaxRetry: 20}
+		id, err := h.Q.Enqueue(ctx, queueport.Task{Type: task.SendMessageTaskType, Payload: b}, opts)
+		if err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "failed to enqueue message"})
+			return
+		}
+
+		c.JSON(http.StatusAccepted, gin.H{
+			"status":    "queued",
+			"task_id":   id,
+			"chat_id":   chatID,
+			"sender_id": req.SenderID,
 		})
 	}
 }

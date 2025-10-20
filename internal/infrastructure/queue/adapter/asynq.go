@@ -107,7 +107,8 @@ func NewAsynqServer() (*AsynqServer, error) {
 		}
 	}
 
-	queues := map[string]int{"default": 1}
+	// Default to consuming both "default" and "chat" queues so tasks are picked up when running API directly
+	queues := map[string]int{"default": 1, "chat": 1}
 	if v := strings.TrimSpace(os.Getenv("ASYNQ_QUEUES")); v != "" {
 		parsed := parseQueueWeights(v)
 		if len(parsed) > 0 {
