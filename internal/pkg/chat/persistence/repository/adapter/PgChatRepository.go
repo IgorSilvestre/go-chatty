@@ -18,15 +18,16 @@ func NewPgChatRepository(pool *pgxpool.Pool) *PgChatRepository {
 	return &PgChatRepository{pool: pool}
 }
 
-func (r *PgChatRepository) CreateConversation(ctx context.Context, c chat.Conversation) error {
+func (r *PgChatRepository) CreateConversation(ctx context.Context, c chat.Conversation) (string, error) {
 	if r == nil || r.pool == nil {
-		return errors.New("PgChatRepository: nil pool")
+		return "", errors.New("PgChatRepository: nil pool")
 	}
-	_, err := r.pool.Exec(ctx,
-		"INSERT INTO conversations (created_at, tenant_id) VALUES ($1, $2::uuid)",
+	var id string
+	err := r.pool.QueryRow(ctx,
+		"INSERT INTO conversations (created_at, tenant_id) VALUES ($1, $2::uuid) RETURNING id::text",
 		c.CreatedAt, c.TenantID,
-	)
-	return err
+	).Scan(&id)
+	return id, err
 }
 
 func (r *PgChatRepository) AddParticipant(ctx context.Context, p chat.Participant) error {

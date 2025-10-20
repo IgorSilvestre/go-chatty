@@ -9,7 +9,7 @@ import (
 // ChatRepository defines persistence operations for the chat domain
 // Note: Receipt and Block operations were removed from Chat; handle them in a separate context/service if needed.
 type ChatRepository interface {
-	CreateConversation(ctx context.Context, c chat.Conversation) error
+	CreateConversation(ctx context.Context, c chat.Conversation) (string, error)
 	AddParticipant(ctx context.Context, p chat.Participant) error
 	SaveMessage(ctx context.Context, m chat.Message) (string, error)
 	GetMessagesByConversation(ctx context.Context, conversationID string, limit int, offset int) ([]chat.Message, error)
