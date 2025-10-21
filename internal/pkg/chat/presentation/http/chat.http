@@ -3,7 +3,7 @@ POST {{host}}/api/v1/chat
 Content-Type: application/json
 
 {
-  "participant_ids": ["{{userId1}}", "{{userId2}}"]
+  "participantIds": ["{{userId1}}", "{{userId2}}"]
 }
 
 ### Send a message to a chat
@@ -11,10 +11,10 @@ POST {{host}}/api/v1/chat/{{chatId}}
 Content-Type: application/json
 
 {
-  "sender_id": "{{userId2}}",
+  "senderId": "{{userId2}}",
   "body": "last test I think v2",
-  "msg_type": 0,
-  "dedupe_key": "optional-dedupe-key"
+  "msgType": 0,
+  "dedupeKey": "optional-dedupe-key"
 }
 
 ### Get messages from a chat

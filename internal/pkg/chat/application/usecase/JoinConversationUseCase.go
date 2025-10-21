@@ -25,7 +25,7 @@ func NewJoinConversationUseCase(repo repository.ChatRepository) *JoinConversatio
 
 func (uc *JoinConversationUseCase) Execute(ctx context.Context, in JoinConversationInput) error {
 	if in.ConversationID == "" || in.UserID == "" {
-		return fmt.Errorf("conversation_id and user_id are required")
+		return fmt.Errorf("conversationId and userId are required")
 	}
 
 	ok, err := uc.Repo.IsParticipant(ctx, in.ConversationID, in.UserID)

@@ -25,12 +25,12 @@ func NewSendMessageController(pool *pgxpool.Pool, client queueport.Client) *Send
 
 // sendMessageRequest is the DTO for the HTTP request body
 type sendMessageRequest struct {
-	SenderID       string  `json:"sender_id" binding:"required"`
+	SenderID       string  `json:"senderId" binding:"required"`
 	Body           *string `json:"body"`
-	MsgType        *int16  `json:"msg_type"`
-	AttachmentURL  *string `json:"attachment_url"`
-	AttachmentMeta *string `json:"attachment_meta"`
-	DedupeKey      *string `json:"dedupe_key"`
+	MsgType        *int16  `json:"msgType"`
+	AttachmentURL  *string `json:"attachmentUrl"`
+	AttachmentMeta *string `json:"attachmentMeta"`
+	DedupeKey      *string `json:"dedupeKey"`
 }
 
 // Handle returns a gin handler that enqueues a background task to send a message
@@ -80,10 +80,10 @@ func (h *SendMessageController) Handle() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusAccepted, gin.H{
-			"status":    "queued",
-			"task_id":   id,
-			"chat_id":   chatID,
-			"sender_id": req.SenderID,
+			"status":   "queued",
+			"taskId":   id,
+			"chatId":   chatID,
+			"senderId": req.SenderID,
 		})
 	}
 }

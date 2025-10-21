@@ -19,13 +19,13 @@ const SendMessageTaskType = "chat:send_message"
 // SendMessageTaskPayload is the JSON payload transported via the queue.
 // Kept decoupled from domain types to avoid tight coupling with JSON tags.
 type SendMessageTaskPayload struct {
-	ConversationID string  `json:"conversation_id"`
-	SenderID       string  `json:"sender_id"`
+	ConversationID string  `json:"conversationId"`
+	SenderID       string  `json:"senderId"`
 	Body           *string `json:"body"`
-	MsgType        int16   `json:"msg_type"`
-	AttachmentURL  *string `json:"attachment_url"`
-	AttachmentMeta *string `json:"attachment_meta"`
-	DedupeKey      *string `json:"dedupe_key"`
+	MsgType        int16   `json:"msgType"`
+	AttachmentURL  *string `json:"attachmentUrl"`
+	AttachmentMeta *string `json:"attachmentMeta"`
+	DedupeKey      *string `json:"dedupeKey"`
 }
 
 // RegisterSendMessageTask binds the task handler to the provided server.

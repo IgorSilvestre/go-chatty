@@ -48,12 +48,12 @@ var wsUpgrader = websocket.Upgrader{
 
 type inboundFrame struct {
 	Type           string  `json:"type"`
-	ConversationID string  `json:"conversation_id,omitempty"`
+	ConversationID string  `json:"conversationId,omitempty"`
 	Body           *string `json:"body,omitempty"`
-	MsgType        *int16  `json:"msg_type,omitempty"`
-	AttachmentURL  *string `json:"attachment_url,omitempty"`
-	AttachmentMeta *string `json:"attachment_meta,omitempty"`
-	DedupeKey      *string `json:"dedupe_key,omitempty"`
+	MsgType        *int16  `json:"msgType,omitempty"`
+	AttachmentURL  *string `json:"attachmentUrl,omitempty"`
+	AttachmentMeta *string `json:"attachmentMeta,omitempty"`
+	DedupeKey      *string `json:"dedupeKey,omitempty"`
 }
 
 type errorFrame struct {
@@ -64,25 +64,25 @@ type errorFrame struct {
 
 type ackFrame struct {
 	Type           string `json:"type"`
-	ConversationID string `json:"conversation_id,omitempty"`
+	ConversationID string `json:"conversationId,omitempty"`
 }
 
 type outboundMessage struct {
 	Type           string         `json:"type"`
-	ConversationID string         `json:"conversation_id"`
+	ConversationID string         `json:"conversationId"`
 	Message        messagePayload `json:"message"`
 }
 
 type messagePayload struct {
 	ID             string    `json:"id"`
-	ConversationID string    `json:"conversation_id"`
-	SenderID       string    `json:"sender_id"`
-	CreatedAt      time.Time `json:"created_at"`
+	ConversationID string    `json:"conversationId"`
+	SenderID       string    `json:"senderId"`
+	CreatedAt      time.Time `json:"createdAt"`
 	Body           *string   `json:"body,omitempty"`
-	MsgType        int16     `json:"msg_type"`
-	AttachmentURL  *string   `json:"attachment_url,omitempty"`
-	AttachmentMeta *string   `json:"attachment_meta,omitempty"`
-	DedupeKey      *string   `json:"dedupe_key,omitempty"`
+	MsgType        int16     `json:"msgType"`
+	AttachmentURL  *string   `json:"attachmentUrl,omitempty"`
+	AttachmentMeta *string   `json:"attachmentMeta,omitempty"`
+	DedupeKey      *string   `json:"dedupeKey,omitempty"`
 }
 
 const defaultReadTimeout = 60 * time.Second
@@ -90,9 +90,9 @@ const defaultReadTimeout = 60 * time.Second
 // Handle upgrades HTTP connections to websocket and processes frames until the client disconnects.
 func (ctl *ChatSocketController) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Query("user_id")
+		userID := c.Query("userId")
 		if userID == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
 			return
 		}
 
@@ -153,7 +153,7 @@ func (ctl *ChatSocketController) Handle() gin.HandlerFunc {
 
 func (ctl *ChatSocketController) handleJoin(c *gin.Context, conn *realtime.Connection, frame inboundFrame) {
 	if frame.ConversationID == "" {
-		ctl.replyError(conn, "bad_request", "conversation_id is required")
+		ctl.replyError(conn, "bad_request", "conversationId is required")
 		return
 	}
 
@@ -179,7 +179,7 @@ func (ctl *ChatSocketController) handleJoin(c *gin.Context, conn *realtime.Conne
 
 func (ctl *ChatSocketController) handleLeave(conn *realtime.Connection, frame inboundFrame) {
 	if frame.ConversationID == "" {
-		ctl.replyError(conn, "bad_request", "conversation_id is required")
+		ctl.replyError(conn, "bad_request", "conversationId is required")
 		return
 	}
 	ctl.router.Leave(frame.ConversationID, conn)
@@ -192,7 +192,7 @@ func (ctl *ChatSocketController) handleLeave(conn *realtime.Connection, frame in
 
 func (ctl *ChatSocketController) handleMessage(c *gin.Context, conn *realtime.Connection, userID string, frame inboundFrame) {
 	if frame.ConversationID == "" {
-		ctl.replyError(conn, "bad_request", "conversation_id is required")
+		ctl.replyError(conn, "bad_request", "conversationId is required")
 		return
 	}
 

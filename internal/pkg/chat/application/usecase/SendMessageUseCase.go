@@ -34,7 +34,7 @@ func NewSendMessageUseCase(repo repository.ChatRepository) *SendMessageUseCase {
 // Execute sends/persists a new message for a conversation
 func (uc *SendMessageUseCase) Execute(ctx context.Context, in SendMessageInput) (*chat.Message, error) {
 	if in.ConversationID == "" || in.SenderID == "" {
-		return nil, fmt.Errorf("conversation_id and sender_id are required")
+		return nil, fmt.Errorf("conversationId and senderId are required")
 	}
 
 	isParticipant, err := uc.Repo.IsParticipant(ctx, in.ConversationID, in.SenderID)

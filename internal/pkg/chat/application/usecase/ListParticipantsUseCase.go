@@ -23,7 +23,7 @@ func NewListParticipantsUseCase(repo repository.ChatRepository) *ListParticipant
 
 func (uc *ListParticipantsUseCase) Execute(ctx context.Context, in ListParticipantsInput) ([]string, error) {
 	if in.ConversationID == "" {
-		return nil, fmt.Errorf("conversation_id is required")
+		return nil, fmt.Errorf("conversationId is required")
 	}
 
 	ids, err := uc.Repo.ListParticipantIDs(ctx, in.ConversationID)

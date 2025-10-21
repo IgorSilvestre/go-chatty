@@ -32,7 +32,7 @@ type Message struct {
 
 func NewMessage(m Message) (*Message, error) {
 	if m.ConversationID == "" || m.SenderID == "" {
-		return nil, errors.New("conversation_id and sender_id are required")
+		return nil, errors.New("conversationId and senderId are required")
 	}
 
 	if m.Body != nil {

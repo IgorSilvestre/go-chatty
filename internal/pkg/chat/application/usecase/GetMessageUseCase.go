@@ -30,7 +30,7 @@ func NewGetMessageUseCase(repo repository.ChatRepository) *GetMessageUseCase {
 // Execute returns messages for the conversation honoring limit/offset
 func (uc *GetMessageUseCase) Execute(ctx context.Context, in GetMessageInput) ([]chat.Message, error) {
 	if in.ConversationID == "" {
-		return nil, fmt.Errorf("conversation_id is required")
+		return nil, fmt.Errorf("conversationId is required")
 	}
 	msgs, err := uc.Repo.GetMessagesByConversation(ctx, in.ConversationID, in.Limit, in.Offset)
 	if err != nil {

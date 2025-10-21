@@ -23,7 +23,7 @@ func NewCreateChatController(pool *pgxpool.Pool) *CreateChatController {
 }
 
 type createChatRequest struct {
-	ParticipantIDs []string `json:"participant_ids"`
+	ParticipantIDs []string `json:"participantIds"`
 }
 
 func (h *CreateChatController) Handle() gin.HandlerFunc {
@@ -34,7 +34,7 @@ func (h *CreateChatController) Handle() gin.HandlerFunc {
 			return
 		}
 		if len(req.ParticipantIDs) == 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "participant_ids must include at least one user id"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "participantIds must include at least one user id"})
 			return
 		}
 
@@ -52,8 +52,8 @@ func (h *CreateChatController) Handle() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"id":         conv.ID,
-			"created_at": conv.CreatedAt,
+			"id":        conv.ID,
+			"createdAt": conv.CreatedAt,
 		})
 	}
 }

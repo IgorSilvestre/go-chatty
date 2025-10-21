@@ -66,15 +66,15 @@ func (h *GetMessageController) Handle() gin.HandlerFunc {
 		out := make([]gin.H, 0, len(msgs))
 		for _, m := range msgs {
 			out = append(out, gin.H{
-				"id":              m.ID,
-				"conversation_id": m.ConversationID,
-				"sender_id":       m.SenderID,
-				"created_at":      m.CreatedAt,
-				"body":            m.Body,
-				"msg_type":        m.MsgType,
-				"attachment_url":  m.AttachmentURL,
-				"attachment_meta": m.AttachmentMeta,
-				"dedupe_key":      m.DedupeKey,
+				"id":             m.ID,
+				"conversationId": m.ConversationID,
+				"senderId":       m.SenderID,
+				"createdAt":      m.CreatedAt,
+				"body":           m.Body,
+				"msgType":        m.MsgType,
+				"attachmentUrl":  m.AttachmentURL,
+				"attachmentMeta": m.AttachmentMeta,
+				"dedupeKey":      m.DedupeKey,
 			})
 		}
 

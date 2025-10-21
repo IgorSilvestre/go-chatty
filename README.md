@@ -116,40 +116,40 @@ _ = srv.Run(ctx)
 
 ## Websocket Chat Usage
 
-- Endpoint: `GET /api/v1/chat/ws?user_id=<uuid>` upgrades to a websocket; the `user_id` query parameter identifies the session. No request body is sent during the upgrade.
+- Endpoint: `GET /api/v1/chat/ws?userId=<uuid>` upgrades to a websocket; the `userId` query parameter identifies the session. No request body is sent during the upgrade.
 - Handshake response: the server emits `{"type":"connected"}` once the socket is ready. Ping frames are sent every 30s; standard websocket clients reply automatically.
 - Join or leave a conversation by sending JSON frames after the connection is open:
-  - Join: `{"type":"join","conversation_id":"<uuid>"}` → server replies `{"type":"joined","conversation_id":"<uuid>"}`.
-  - Leave: `{"type":"leave","conversation_id":"<uuid>"}` → server replies `{"type":"left","conversation_id":"<uuid>"}`.
+  - Join: `{"type":"join","conversationId":"<uuid>"}` → server replies `{"type":"joined","conversationId":"<uuid>"}`.
+  - Leave: `{"type":"leave","conversationId":"<uuid>"}` → server replies `{"type":"left","conversationId":"<uuid>"}`.
 - Send a message while joined to the conversation:
   ```
   {
     "type": "message",
-    "conversation_id": "<uuid>",
+    "conversationId": "<uuid>",
     "body": "hello world",
-    "msg_type": 0,
-    "attachment_url": null,
-    "attachment_meta": null,
-    "dedupe_key": null
+    "msgType": 0,
+    "attachmentUrl": null,
+    "attachmentMeta": null,
+    "dedupeKey": null
   }
   ```
   The payload is persisted via the regular send-message use case and broadcast back as:
   ```
   {
     "type": "message",
-    "conversation_id": "<uuid>",
+    "conversationId": "<uuid>",
     "message": {
       "id": "<message-id>",
-      "conversation_id": "<uuid>",
-      "sender_id": "<user-id>",
-      "created_at": "2025-01-01T12:00:00Z",
+      "conversationId": "<uuid>",
+      "senderId": "<user-id>",
+      "createdAt": "2025-01-01T12:00:00Z",
       "body": "hello world",
-      "msg_type": 0,
-      "attachment_url": null,
-      "attachment_meta": null,
-      "dedupe_key": null
+      "msgType": 0,
+      "attachmentUrl": null,
+      "attachmentMeta": null,
+      "dedupeKey": null
     }
   }
   ```
 - Error frames use `{"type":"error","code":"bad_request|forbidden|internal_error","error":"..."}`. For example, attempting to join a conversation you are not part of yields `code="forbidden"`.
-- Disconnecting the socket removes the user from all rooms; reconnect with the same `user_id` to resume and re-issue `join` frames as needed.
+- Disconnecting the socket removes the user from all rooms; reconnect with the same `userId` to resume and re-issue `join` frames as needed.
