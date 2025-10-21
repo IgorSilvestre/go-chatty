@@ -2,6 +2,7 @@ package v1
 
 import (
 	qport "go-chatty/internal/infrastructure/queue/port"
+	"go-chatty/internal/infrastructure/realtime"
 	httpHandler "go-chatty/internal/pkg/chat/presentation/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,8 +10,8 @@ import (
 )
 
 // RegisterRoutes mounts all version 1 API routes under /api/v1
-func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool, client qport.Client) {
+func RegisterRoutes(r *gin.Engine, pool *pgxpool.Pool, client qport.Client, router *realtime.Router) {
 	v1 := r.Group("/api/v1")
 	// Pass the DB connection and queue client down to the HTTP layer
-	httpHandler.RegisterRoutes(v1, pool, client)
+	httpHandler.RegisterRoutes(v1, pool, client, router)
 }

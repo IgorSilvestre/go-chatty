@@ -11,6 +11,7 @@ import (
 	"go-chatty/internal/infrastructure/database"
 	queueAdapter "go-chatty/internal/infrastructure/queue/adapter"
 	queueport "go-chatty/internal/infrastructure/queue/port"
+	"go-chatty/internal/infrastructure/realtime"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -48,7 +49,11 @@ func main() {
 		})
 	})
 
-	apiv1.RegisterRoutes(r, pool, qClient)
+	// Router manages websocket fan-out per user/session
+	realtimeRouter := realtime.NewRouter()
+	defer realtimeRouter.Close()
+
+	apiv1.RegisterRoutes(r, pool, qClient, realtimeRouter)
 
 	// Initialize Asynq server (worker) and launch in a goroutine
 	srv, err := queueAdapter.NewAsynqServer()

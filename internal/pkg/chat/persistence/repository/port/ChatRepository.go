@@ -15,4 +15,6 @@ type ChatRepository interface {
 	GetMessagesByConversation(ctx context.Context, conversationID string, limit int, offset int) ([]chat.Message, error)
 	UpdateParticipantReadState(ctx context.Context, conversationID string, userID string, lastReadMsg *string) error
 	SetMuteUntil(ctx context.Context, conversationID string, userID string, mutedUntil *time.Time) error
+	IsParticipant(ctx context.Context, conversationID string, userID string) (bool, error)
+	ListParticipantIDs(ctx context.Context, conversationID string) ([]string, error)
 }

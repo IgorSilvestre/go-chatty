@@ -140,3 +140,44 @@ func (r *PgChatRepository) SetMuteUntil(ctx context.Context, conversationID stri
 	}
 	return nil
 }
+
+func (r *PgChatRepository) IsParticipant(ctx context.Context, conversationID string, userID string) (bool, error) {
+	if r == nil || r.pool == nil {
+		return false, errors.New("PgChatRepository: nil pool")
+	}
+	var exists bool
+	err := r.pool.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1 FROM chat.participant WHERE conversation_id = $1::uuid AND user_id = $2::uuid
+		)
+	`, conversationID, userID).Scan(&exists)
+	return exists, err
+}
+
+func (r *PgChatRepository) ListParticipantIDs(ctx context.Context, conversationID string) ([]string, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("PgChatRepository: nil pool")
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT user_id::text
+		FROM chat.participant
+		WHERE conversation_id = $1::uuid
+	`, conversationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return ids, nil
+}
