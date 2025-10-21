@@ -1,2 +1,6 @@
 .env
 *.env*
+.gocache/
+.gomodcache/
+.tmp_gocache/
+.tmp_gomodcache/
